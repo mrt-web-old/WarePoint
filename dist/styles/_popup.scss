@@ -1,0 +1,108 @@
+.popup {
+    height: 100vh;
+    width: 100vw;
+    background-color: rgba(32, 33, 36, 0.4);
+    // background-color: saddlebrown;
+    // position: fixed;
+    z-index: 1000;
+    position: fixed;
+    top: 0;
+    left: -0em;
+    display: block;
+    align-items: center;
+    justify-content: center;
+    .container {
+        // margin: auto;
+        position: relative;
+        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+        -webkit-animation-name: animatetop;
+        -webkit-animation-duration: 0.4s;
+        animation-name: animatetop;
+        animation-duration: 0.4s;
+        .head {
+            background-color: sandybrown;
+            border-radius: 0.5em 0.5em 0 0;
+            padding-left: 1.5em;
+            display: flex;
+            font-weight: bold;
+            p:last-of-type {
+                margin: auto 0 auto auto;
+                padding: 1em;
+                cursor: pointer;
+                @include selective-cursor;
+            }
+        }
+        display: flex;
+        flex-direction: column;
+        border-radius: 0.5em;
+        background-color: salmon;
+        width: 90%;
+        @include for-size(tablet-portrait-up) {
+            width: 35em;
+        }
+        .content {
+            padding: 2em;
+            display: flex;
+            // justify-items: center;
+            flex-direction: column;
+            div {
+                // background-color: silver;
+                display: flex;
+                margin-bottom: 0.5em;
+                input {
+                    flex-grow: 1;
+                    min-width: 2em;
+                    border: none;
+                    padding-left: 1em;
+                }
+                label {
+                    min-width: 4em;
+                    text-align: right;
+                    padding-right: 0.5em;
+                }
+                span {
+                    background-color: seashell;
+                    margin-left: 0.2em;
+                    cursor: pointer;
+                    padding: 0 1em;
+                }
+            }
+            button {
+                min-height: 3em;
+                // padding: 0;
+                // border: none;
+                &:first-of-type {
+                    min-width: 3.5rem;
+                    margin-right: 0.6em;
+                }
+                &:last-of-type {
+                    flex-grow: 1;
+                    // margin-left: .75em;
+                }
+            }
+        }
+    }
+}
+
+/* Add Animation */
+@-webkit-keyframes animatetop{
+    from {
+        top: -300px;
+        opacity: .2;
+    }
+    to {
+        top: 0px;
+        opacity: 1;
+    }
+}
+
+@keyframes animatetop{
+    from {
+        top: -300px;
+        opacity: .2;
+    }
+    to {
+        top: 0px;
+        opacity: 1;
+    }
+}
