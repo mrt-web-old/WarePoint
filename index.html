@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Requests</title>
+
+  <link rel="stylesheet" href="styles/main.css">
+  <script src="scripts/lodash.min.js"></script>
+  <script src="scripts/vue.min.js"></script>
+  <script src="scripts/popup.js" defer></script>
+  <script src="scripts/main.js" defer></script>
+
+</head>
+
+<body>
+  <div id="app" class="noselect" v-cloak>
+    <!-- <input type="text" placeholder="Search for orders"> -->
+    <popup :type='popup_box' ref='popup' @save="save"></popup>
+    <div class="">
+
+    </div>
+    <!-- 
+  section
+    x order.name
+      x item > title > count > check
+      x item > title > count > check
+    
+ -->
+    <section class="noselect">
+      <section v-for="(order, oi) in orders" class="order">
+
+        <div class="order_head"
+          :style="{position: items_height(order.id).includes('max-height: 0')? 'static':'sticky'}">
+          <div class="delete" @click="del(order.id)">
+            <div class="delete_color"></div>
+            <div class="delete_X">x</div>
+          </div>
+          <div class="order_head_title" @click="show(order.id)"
+            @contextmenu.prevent="alert(window.performance.memory.jsHeapSizeLimit/10000000)">
+            <p>{{order.name}}</p>
+            <div class="check"></div>
+            <span v-if="order.prepaired"></span>
+            <span v-if="order.delivered"></span>
+          </div>
+          <p class="order_head_add" @click="show_addItem(order.id)">+</p>
+        </div>
+
+        <div class="order_details">
+          <div class="info">
+            <span class="info_item" v-if="updating_orders[order.id]" @click="upload(order.id, false)"
+              style="background-color: chartreuse;"><span>update</span></span>
+            <span class="info_item" v-if="updating_orders[order.id]" @click="cancel_change(order.id)"
+              style="background-color: tomato;"><span>cancel</span></span>
+            <span class="info_item"><span><a :href="'tel:'+order.contact"
+                  style="text-decoration:none; color: blue;">Call Me</a></span></span>
+            <span class="info_item" draggable="true"><span>total {{order.total||0}}</span></span>
+            <span class="info_item"><span>paid {{order.paid||0}}</span></span>
+            <span class="info_item" v-if="order.note"><span># {{order.note}}</span></span>
+            <span class="info_item" @click="show_addCustomer(order.id)"><span><u>Edit</u></span></span>
+            <!-- <label class="checkbox info_check">
+                    جاهز
+                    <input type="checkbox" >
+                    <span class="checkmark"></span>
+                </label> -->
+          </div>
+        </div>
+
+        <article :id="'items_'+oi" :style="items_height(order.id)" class="items">
+
+          <div class="item e" draggable="true" @dblclick="tick_item(order.id, i)"
+            @contextmenu.prevent="show_addItem(order.id, i, event)" v-for="(item, i) in order.items">
+
+            <div class="item_main e">
+              <p class="item_main_title e"><span>{{i+1}} - </span>{{item.title}}</p>
+
+              <div class="info">
+                <p class="info_item"><span>cnt {{item.count}}</span></p>
+                <span class="info_item"><span>prc {{item.price}}</span></span>
+
+                <span class="info_item" @contextmenu.prevent="delete_item(order.id, i)"><span>delete</span></span>
+                <span class="info_item"><span>{{item.note}}</span></span>
+
+              </div>
+            </div>
+
+            <div class="item_main_check" @click="tick_item(order.id, i)">
+              <div v-if="!item.prepaired && !item.delivered"></div>
+              <span v-if="item.prepaired"></span>
+              <span v-if="item.delivered"></span>
+            </div>
+
+          </div>
+        </article>
+
+      </section>
+    </section>
+
+    <br>
+    <br>
+    <div class="floater">
+      <div>update</div>
+      <div @click="{scroll({left: 0, top: 0, behavior: 'smooth'})}">top</div>
+      <div @click="show_addCustomer()">new customer</div>
+    </div>
+
+
+    <script src="https://www.gstatic.com/firebasejs/7.9.3/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.9.3/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.9.3/firebase-firestore.js"></script>
+    <script>
+      var firebaseConfig = {
+        apiKey: "AIzaSyAs2sP2l9OyVP1tvF_CoPrUkYWw8l7Xtk0",
+        authDomain: "sweltering-heat-7561.firebaseapp.com",
+        databaseURL: "https://sweltering-heat-7561.firebaseio.com",
+        projectId: "sweltering-heat-7561",
+        storageBucket: "sweltering-heat-7561.appspot.com",
+        messagingSenderId: "213208330652",
+        appId: "1:213208330652:web:65dffe2f84a155cbe59859"
+      };
+
+
+      // var firebaseConfig = {
+      //   apiKey: "AIzaSyBWmWIAPvA97sn2RpVx0mfTBmCcgX-98o4",
+      //   authDomain: "fir-computers-ip.firebaseapp.com",
+      //   databaseURL: "https://fir-computers-ip.firebaseio.com",
+      //   projectId: "fir-computers-ip",
+      //   storageBucket: "fir-computers-ip.appspot.com",
+      //   messagingSenderId: "369476238484",
+      //   appId: "1:369476238484:web:f214ed67d25cdb30178881",
+      //   measurementId: "G-05Z9EBZ84Z"
+      // };
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      var auth = firebase.auth();
+      var items = firebase.firestore().collection('items');
+      var e6lbat = firebase.firestore().collection('6lbat');
+      auth.signInWithEmailAndPassword('iquixe@gmail.com', 'password').then(async () => {
+        console.log('singed in as: ' + auth.currentUser.email);
+        // vue.items = await items.get().then(res => res.docs.map(e=> e.data()));
+        vue.orders = await e6lbat.get().then(res => res.docs.map(e => {
+          let order = e.data()
+          order.id = e.id
+          if (ie(order.items))
+            order.items = [];
+          return order
+        }));
+        // console.log(vue.items, vue.e6lbat)
+      });
+    </script>
+
+    <!-- <script src="scripts/main.js" defer></script> -->
+</body>
+
+</html>
